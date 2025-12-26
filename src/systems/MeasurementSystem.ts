@@ -5,13 +5,6 @@ export class MeasurementSystem extends System {
   private scene: THREE.Scene | null = null;
   private camera: THREE.Camera | null = null;
 
-  import System from '../baseClasses/System';
-import * as THREE from 'three';
-
-export class MeasurementSystem extends System {
-  private scene: THREE.Scene | null = null;
-  private camera: THREE.Camera | null = null;
-
   // state
   private isActive = false;
   private isMeasuring = false;
@@ -59,7 +52,7 @@ export class MeasurementSystem extends System {
     this.cancelMeasurement();
   }
 
-  // ================== helpers ==================
+  // ================= helpers =================
 
   private handleClick(worldPosition: THREE.Vector3): void {
     // first click → start measuring
@@ -125,4 +118,3 @@ export class MeasurementSystem extends System {
     this.isMeasuring = false;
   }
 }
-
