@@ -5,12 +5,10 @@ export class MeasurementSystem extends System {
   private scene: THREE.Scene | null = null;
   private camera: THREE.Camera | null = null;
 
-  // state
   private isActive = false;
   private isMeasuring = false;
   private startPoint: THREE.Vector3 | null = null;
 
-  // visuals
   private previewLine: THREE.Line | null = null;
 
   init(dependencies: { scene: THREE.Scene; camera: THREE.Camera }): void {
@@ -52,10 +50,7 @@ export class MeasurementSystem extends System {
     this.cancelMeasurement();
   }
 
-  // ================= helpers =================
-
   private handleClick(worldPosition: THREE.Vector3): void {
-    // first click → start measuring
     if (!this.isMeasuring) {
       this.startPoint = worldPosition.clone();
       this.isMeasuring = true;
@@ -63,7 +58,6 @@ export class MeasurementSystem extends System {
       return;
     }
 
-    // second click → finish measuring
     this.completeMeasurement(worldPosition.clone());
   }
 
@@ -91,17 +85,30 @@ export class MeasurementSystem extends System {
   private completeMeasurement(endPoint: THREE.Vector3): void {
     if (!this.startPoint) return;
 
-    const geometry = new THREE.BufferGeometry().setFromPoints([
+    const group = new THREE.Group();
+
+    const lineGeometry = new THREE.BufferGeometry().setFromPoints([
       this.startPoint,
       endPoint,
     ]);
 
-    const material = new THREE.LineBasicMaterial({
+    const lineMaterial = new THREE.LineBasicMaterial({
       color: 0x2563eb,
     });
 
-    const line = new THREE.Line(geometry, material);
-    this.scene?.add(line);
+    const dimensionLine = new THREE.Line(lineGeometry, lineMaterial);
+    group.add(dimensionLine);
+
+    const distance = this.startPoint.distanceTo(endPoint);
+    const label = this.createTextSprite(`${distance.toFixed(2)} m`);
+
+    const midPoint = this.startPoint.clone().add(endPoint).multiplyScalar(0.5);
+    label.position.copy(midPoint);
+    label.position.y += 0.1;
+
+    group.add(label);
+
+    this.scene?.add(group);
 
     this.cancelMeasurement();
   }
@@ -116,5 +123,28 @@ export class MeasurementSystem extends System {
 
     this.startPoint = null;
     this.isMeasuring = false;
+  }
+
+  private createTextSprite(text: string): THREE.Sprite {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+
+    ctx.font = '14px monospace';
+    const textWidth = ctx.measureText(text).width;
+
+    canvas.width = textWidth + 16;
+    canvas.height = 28;
+
+    ctx.font = '14px monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#1e40af';
+    ctx.fillText(text, 8, 18);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const material = new THREE.SpriteMaterial({ map: texture });
+
+    return new THREE.Sprite(material);
   }
 }
