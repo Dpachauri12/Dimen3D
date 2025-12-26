@@ -5,6 +5,8 @@ export class MeasurementSystem extends System {
   private scene: THREE.Scene | null = null;
   private camera: THREE.Camera | null = null;
 
+  private readonly SNAP_INCREMENT = 0.5; // meters
+
   private isActive = false;
   private isMeasuring = false;
   private startPoint: THREE.Vector3 | null = null;
@@ -99,20 +101,20 @@ export class MeasurementSystem extends System {
     const dimensionLine = new THREE.Line(lineGeometry, lineMaterial);
     group.add(dimensionLine);
 
-    const distance = this.startPoint.distanceTo(endPoint);
-    const label = this.createTextSprite(`${distance.toFixed(2)} m`);
+    const rawDistance = this.startPoint.distanceTo(endPoint);
+    const snappedDistance =
+      Math.round(rawDistance / this.SNAP_INCREMENT) * this.SNAP_INCREMENT;
+
+    const label = this.createTextSprite(`${snappedDistance.toFixed(2)} m`);
 
     const midPoint = this.startPoint.clone().add(endPoint).multiplyScalar(0.5);
     label.position.copy(midPoint);
     label.position.y += 0.1;
 
-    // --- TEXT ROTATION & FLIP LOGIC (PDF REQUIREMENT) ---
     const direction = endPoint.clone().sub(this.startPoint);
     const angle = Math.atan2(direction.y, direction.x);
-
     label.rotation.z = angle;
 
-    // Flip text if it would appear upside down
     if (angle > Math.PI / 2 || angle < -Math.PI / 2) {
       label.rotation.z += Math.PI;
     }
