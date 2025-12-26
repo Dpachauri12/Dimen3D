@@ -106,8 +106,18 @@ export class MeasurementSystem extends System {
     label.position.copy(midPoint);
     label.position.y += 0.1;
 
-    group.add(label);
+    // --- TEXT ROTATION & FLIP LOGIC (PDF REQUIREMENT) ---
+    const direction = endPoint.clone().sub(this.startPoint);
+    const angle = Math.atan2(direction.y, direction.x);
 
+    label.rotation.z = angle;
+
+    // Flip text if it would appear upside down
+    if (angle > Math.PI / 2 || angle < -Math.PI / 2) {
+      label.rotation.z += Math.PI;
+    }
+
+    group.add(label);
     this.scene?.add(group);
 
     this.cancelMeasurement();
